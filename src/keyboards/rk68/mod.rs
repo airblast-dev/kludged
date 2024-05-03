@@ -1,6 +1,9 @@
 pub mod keys;
 
-use std::{thread::sleep, time::Duration};
+use std::{fmt::Display, thread::sleep, time::Duration};
+
+#[cfg(feature = "cli")]
+use clap::{Args, ValueEnum};
 
 use hidapi::{DeviceInfo, HidApi};
 use palette::Srgb;
@@ -51,7 +54,7 @@ impl Rk68 {
     /// # ⚠️ Warning:
     /// The device being written to can be bricked, or bugged when a write is performed, if
     /// unsupported device information is passed.
-    pub(crate) fn new(device_info: DeviceInfo) -> Self {
+    pub fn new_unchecked(device_info: DeviceInfo) -> Self {
         let color_steps = {
             // 0x0A, and 0x07 are sent on each step. In a sense they serve as an indicator that
             // this is a color packet.
@@ -98,8 +101,15 @@ impl Rk68 {
             animation_steps,
         }
     }
+}
 
-    pub(crate) fn get_from_devices(devices: &mut Vec<&DeviceInfo>) -> Option<Self> {
+impl Specs for Rk68 {
+    const VID: u16 = 0x0258A;
+    const PID: u16 = 0x005E;
+}
+
+impl Keyboard for Rk68 {
+    fn get_from_devices(devices: &mut Vec<&DeviceInfo>) -> Option<Self> {
         let device_info = {
             let color_device_index = devices.iter().position(|inf| {
                 inf.vendor_id() == Self::VID
@@ -112,22 +122,15 @@ impl Rk68 {
             devices.remove(color_device_index).clone()
         };
 
-        Some(Self::new(device_info))
+        Some(Self::new_unchecked(device_info))
     }
 }
-
-impl Specs for Rk68 {
-    const VID: u16 = 0x0258A;
-    const PID: u16 = 0x005E;
-}
-
-impl Keyboard for Rk68 {}
 
 impl KeyboardColorable for Rk68 {
     const COLOR_ENDPOINT: i32 = ENDPOINT;
     const USAGE_PAGE: u16 = 1;
     const USAGE: u16 = 128;
-    fn set_color<C: Into<Srgb<u8>>>(&mut self, color: C) {
+    fn set_color<C: Into<Srgb<u8>>>(mut self, color: C) -> Self {
         let color: Srgb<u8> = color.into();
 
         let colors = [color.red, color.green, color.blue];
@@ -136,9 +139,11 @@ impl KeyboardColorable for Rk68 {
             indexes.into_iter().zip(colors).for_each(|(index, color)| {
                 self.color_steps[index] = color;
             })
-        })
+        });
+
+        self
     }
-    fn apply_color(&self) -> hidapi::HidResult<()> {
+    fn apply_color(self) -> hidapi::HidResult<Self> {
         let color_device = self.device_info.open_device(&HidApi::new()?)?;
 
         self.color_steps.steps().try_for_each(|step| {
@@ -146,11 +151,14 @@ impl KeyboardColorable for Rk68 {
             sleep(Duration::from_millis(5));
 
             write_result
-        })
+        })?;
+
+        Ok(self)
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default)]
+#[cfg_attr(feature = "cli", derive(ValueEnum))]
 pub enum Sleep {
     FiveMinutes = 1,
     #[default]
@@ -160,6 +168,21 @@ pub enum Sleep {
     Never,
 }
 
+impl Display for Sleep {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        const M: &str = "minutes";
+        let sleep = match self {
+            Self::FiveMinutes => "five",
+            Self::TenMinutes => "ten",
+            Self::TwentyMinutes => "twenty",
+            Self::ThirtyMinutes => "thirty",
+            Self::Never => return write!(f, "never"),
+        };
+
+        write!(f, "{sleep}-{M}")
+    }
+}
+
 impl From<Sleep> for ColorOptions {
     fn from(value: Sleep) -> Self {
         Self { sleep: value }
@@ -167,14 +190,18 @@ impl From<Sleep> for ColorOptions {
 }
 
 #[derive(Debug, Clone, Default)]
+#[cfg_attr(feature = "cli", derive(Args))]
 pub struct ColorOptions {
+    #[cfg_attr(feature = "cli", arg(short, long = "sleep", default_value_t=Sleep::FiveMinutes))]
     pub sleep: Sleep,
 }
 
 impl KeyboardColorOption for Rk68 {
     type Options = ColorOptions;
-    fn set_color_parameters<T: Into<Self::Options>>(&mut self, options: T) {
+    fn set_color_parameters<T: Into<Self::Options>>(mut self, options: T) -> Self {
         self.color_steps.data[5] = options.into().sleep as u8;
+
+        self
     }
 }
 
