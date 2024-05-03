@@ -8,12 +8,18 @@ use palette::Srgb;
 
 use super::commons::color_arg;
 
-pub fn rk68_command(cmd: Command) -> Command {
-    let rk68_cmd = ColorOptions::augment_args(Command::new("set-color").arg(color_arg()));
+pub fn command(cmd: Command) -> Command {
     let rk68_cmd = Command::new("rk68")
-        .subcommand(rk68_cmd)
+        .subcommands(single_kb_command())
         .subcommand_required(true);
     cmd.subcommand(rk68_cmd)
+}
+
+/// Construct keyboard subcommand(s).
+pub fn single_kb_command() -> impl IntoIterator<Item = Command> {
+    [ColorOptions::augment_args(
+        Command::new("set-color").arg(color_arg()),
+    )]
 }
 
 pub fn handle_args(arg_matches: &ArgMatches) -> anyhow::Result<()> {
