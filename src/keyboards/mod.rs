@@ -107,13 +107,13 @@ pub trait KeyboardAnimatable {
     const USAGE: u16;
     const USAGE_PAGE: u16;
     type Animation;
-    fn set_animation(&mut self, animation: Self::Animation);
-    fn apply_animation(&mut self) -> HidResult<()>;
+    fn set_animation(self, animation: Self::Animation) -> Self;
+    fn apply_animation(self) -> HidResult<()>;
 }
 
 pub trait KeyboardAnimationOption {
     type Options;
-    fn set_animation_parameters<T: Into<Self::Options>>(&mut self, options: T);
+    fn set_animation_parameters<T: Into<Self::Options>>(self, options: T) -> Self;
 }
 
 impl From<Rk68> for KeyboardModels {

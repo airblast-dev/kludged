@@ -9,20 +9,18 @@ fn main() {
     compile_error!("The \"cli\" feature must be enabled to compile to binary.");
 }
 
-mod cli;
-
 use clap::{Command, CommandFactory};
 
-use cli::rk68;
-use cli::{commons, Cli};
+use kludged::{
+    cli::{commons, rk68, Cli},
+    keyboards::KeyboardModels,
+};
 
 use anyhow::{bail, Result};
-use kludged::keyboards::KeyboardModels;
+use color_print::cstr;
 
 #[cfg(feature = "cli")]
 fn main() -> Result<()> {
-    use color_print::cstr;
-
     let cmd = Cli::command().subcommand_required(true);
     let keyboards = KeyboardModels::keyboards()?;
 

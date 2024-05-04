@@ -205,7 +205,10 @@ impl KeyboardColorOption for Rk68 {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default)]
+#[cfg_attr(feature = "cli", derive(ValueEnum))]
 pub enum Animation {
+    #[default]
     NeonStream = 1,
     RipplesShining = 2,
     RotatingWindmill = 3,
@@ -233,11 +236,12 @@ impl KeyboardAnimatable for Rk68 {
     const USAGE: u16 = 1;
     const USAGE_PAGE: u16 = 128;
     type Animation = Animation;
-    fn set_animation(&mut self, animation: Self::Animation) {
-        self.animation_steps.data[7] = animation as u8;
+    fn set_animation(mut self, animation: Self::Animation) -> Self {
+        self.animation_steps.data[5] = animation as u8;
+        self
     }
 
-    fn apply_animation(&mut self) -> hidapi::HidResult<()> {
+    fn apply_animation(self) -> hidapi::HidResult<()> {
         let device = self.device_info.open_device(&HidApi::new()?)?;
 
         device.send_feature_report(&self.animation_steps)?;
@@ -246,16 +250,33 @@ impl KeyboardAnimatable for Rk68 {
     }
 }
 
+use crate::cli::commons::get_color;
+
 #[derive(Clone, Debug, Default)]
+#[cfg_attr(feature = "cli", derive(Args))]
 pub struct AnimationOptions {
+    #[arg(
+        short = 'm',
+        long = "color-mix",
+        help = "Enable color mix.",
+        long_help = "Enable color mix. Can also be used with the color parameter in some cases."
+    )]
     pub color_mix: bool,
+    #[cfg_attr(
+        feature = "cli",
+        arg(short = 'c', long = "color", value_enum, default_value = "red", value_parser=get_color)
+    )]
     pub color: Srgb<u8>,
+    #[cfg_attr(feature = "cli", arg(long="speed", value_enum, default_value_t=Speed::default()))]
     pub speed: Speed,
+    #[cfg_attr(feature = "cli", arg(short = 's', long="sleep", value_enum, default_value_t=Sleep::default()))]
     pub sleep: Sleep,
+    #[cfg_attr(feature = "cli", arg(short = 'b', long = "brightness", value_enum, default_value_t=Brightness::default()))]
     pub brightness: Brightness,
 }
 
 #[derive(Clone, Debug, Default)]
+#[cfg_attr(feature = "cli", derive(ValueEnum))]
 pub enum Speed {
     #[default]
     One = 1,
@@ -266,6 +287,7 @@ pub enum Speed {
 }
 
 #[derive(Clone, Debug, Default)]
+#[cfg_attr(feature = "cli", derive(ValueEnum))]
 /// Zero is off, each one after that is 20% of the total brightness.
 pub enum Brightness {
     Zero = 0,
@@ -279,7 +301,7 @@ pub enum Brightness {
 
 impl KeyboardAnimationOption for Rk68 {
     type Options = AnimationOptions;
-    fn set_animation_parameters<T: Into<Self::Options>>(&mut self, options: T) {
+    fn set_animation_parameters<T: Into<Self::Options>>(mut self, options: T) -> Self {
         let options: Self::Options = options.into();
 
         // Set animation speed.
@@ -299,5 +321,7 @@ impl KeyboardAnimationOption for Rk68 {
 
         // Set the sleep.
         self.animation_steps.data[13] = options.sleep as u8;
+
+        self
     }
 }
