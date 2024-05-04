@@ -1,4 +1,7 @@
-use std::ops::{Deref, DerefMut, Index, IndexMut};
+use std::{
+    mem::MaybeUninit,
+    ops::{Deref, DerefMut, Index, IndexMut},
+};
 
 /// A struct that carries data for a keyboard.
 ///
@@ -92,6 +95,7 @@ impl<const DATA_LEN: usize> DerefMut for Steps<DATA_LEN> {
 }
 
 /// Indexes for the data that is being processed.
+#[derive(Clone, Debug)]
 pub struct Indexes {
     /// The N'th step.
     pub step: usize,
@@ -107,10 +111,54 @@ impl Indexes {
     }
 }
 
-pub(crate) const fn same_step_indexes(step_count: usize, first: usize) -> [Indexes; 3] {
-    [
-        Indexes::new(step_count, first),
-        Indexes::new(step_count, first + 1),
-        Indexes::new(step_count, first + 2),
-    ]
+/// Create an array of [`Indexes`] with the length of `LEN`.
+pub(crate) const fn same_step_indexes<const LEN: usize>(
+    step_count: usize,
+    first: usize,
+) -> [Indexes; LEN] {
+    // To create the array of indexes in the const function, we allocate the array as `MaybeUninit`
+    // and then transmute it to treat the array as it was intialized.
+    //
+    // SAFETY:
+    // It is safe to transmute here as we initialize all indexes.
+    let arr: MaybeUninit<[Indexes; LEN]> = MaybeUninit::zeroed();
+
+    let mut arr = unsafe { arr.assume_init() };
+
+    let mut i = 0;
+    while i < LEN {
+        // It would be better to use `MaybeUninit::write` once it is made const.
+        arr[i] = Indexes::new(step_count, first + i);
+        i += 1;
+    }
+
+    arr
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{same_step_indexes, Indexes};
+    use std::thread::sleep;
+    use std::time::Duration;
+
+    #[test]
+    fn test_same_step_indexes() {
+        let indexes: [Indexes; 5] = same_step_indexes(1, 1);
+        sleep(Duration::from_secs(10));
+        for (i, index) in indexes.into_iter().enumerate() {
+            assert_eq!(i + 1, index.index);
+        }
+
+        let indexes: [Indexes; 20] = same_step_indexes(1, 100);
+        sleep(Duration::from_secs(10));
+        for (i, index) in indexes.into_iter().enumerate() {
+            assert_eq!(i + 100, index.index);
+        }
+
+        let indexes: [Indexes; 50] = same_step_indexes(1, 420);
+        sleep(Duration::from_secs(10));
+        for (i, index) in indexes.into_iter().enumerate() {
+            assert_eq!(i + 420, index.index);
+        }
+    }
 }
