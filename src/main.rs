@@ -1,14 +1,3 @@
-#[cfg(not(feature = "cli"))]
-fn main() {
-    // This is due to `cfg_attr` in the library.
-    // It isn't possible to implement traits from another crate.
-    // Even so, most of the keyboard options are deriveable.
-    //
-    // In order to practically support the options in the CLI,
-    // trait implementations for traits from `clap` are feature gated to remove the dependency from the library side of things.
-    compile_error!("The \"cli\" feature must be enabled to compile to binary.");
-}
-
 use clap::{Command, CommandFactory};
 
 use kludged::{
@@ -19,7 +8,6 @@ use kludged::{
 use anyhow::{bail, Result};
 use color_print::cstr;
 
-#[cfg(feature = "cli")]
 fn main() -> Result<()> {
     let cmd = Cli::command().subcommand_required(true);
     let keyboards = KeyboardModels::keyboards()?;
