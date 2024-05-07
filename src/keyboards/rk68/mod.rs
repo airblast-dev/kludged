@@ -2,12 +2,9 @@ pub mod keys;
 
 use std::{fmt::Display, thread::sleep, time::Duration};
 
-#[cfg(feature = "cli")]
-use clap::{Args, ValueEnum};
-
 use hidapi::{DeviceInfo, HidApi};
 use palette::Srgb;
-use strum::IntoEnumIterator;
+use strum::{EnumString, IntoEnumIterator, IntoStaticStr, VariantNames};
 
 use self::keys::Keys;
 
@@ -157,8 +154,8 @@ impl KeyboardColorable for Rk68 {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default)]
-#[cfg_attr(feature = "cli", derive(ValueEnum))]
+#[derive(Clone, Copy, Debug, Default, IntoStaticStr, VariantNames, EnumString)]
+#[strum(serialize_all = "kebab-case")]
 pub enum Sleep {
     FiveMinutes = 1,
     #[default]
@@ -190,9 +187,8 @@ impl From<Sleep> for ColorOptions {
 }
 
 #[derive(Debug, Clone, Default)]
-#[cfg_attr(feature = "cli", derive(Args))]
 pub struct ColorOptions {
-    #[cfg_attr(feature = "cli", arg(short, long = "sleep", default_value_t=Sleep::FiveMinutes))]
+    //#[cfg_attr(feature = "cli", arg(short, long = "sleep", default_value_t=Sleep::FiveMinutes))]
     pub sleep: Sleep,
 }
 
@@ -205,8 +201,8 @@ impl KeyboardColorOption for Rk68 {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default)]
-#[cfg_attr(feature = "cli", derive(ValueEnum))]
+#[derive(Clone, Copy, Debug, Default, IntoStaticStr, VariantNames, EnumString)]
+#[strum(serialize_all = "kebab-case")]
 pub enum Animation {
     #[default]
     NeonStream = 1,
@@ -250,33 +246,17 @@ impl KeyboardAnimatable for Rk68 {
     }
 }
 
-use crate::cli::commons::get_color;
-
 #[derive(Clone, Debug, Default)]
-#[cfg_attr(feature = "cli", derive(Args))]
 pub struct AnimationOptions {
-    #[arg(
-        short = 'm',
-        long = "color-mix",
-        help = "Enable color mix.",
-        long_help = "Enable color mix. Can also be used with the color parameter in some cases."
-    )]
     pub color_mix: bool,
-    #[cfg_attr(
-        feature = "cli",
-        arg(short = 'c', long = "color", value_enum, default_value = "red", value_parser=get_color)
-    )]
     pub color: Srgb<u8>,
-    #[cfg_attr(feature = "cli", arg(long="speed", value_enum, default_value_t=Speed::default()))]
     pub speed: Speed,
-    #[cfg_attr(feature = "cli", arg(short = 's', long="sleep", value_enum, default_value_t=Sleep::default()))]
     pub sleep: Sleep,
-    #[cfg_attr(feature = "cli", arg(short = 'b', long = "brightness", value_enum, default_value_t=Brightness::default()))]
     pub brightness: Brightness,
 }
 
-#[derive(Clone, Debug, Default)]
-#[cfg_attr(feature = "cli", derive(ValueEnum))]
+#[derive(Clone, Copy, Debug, Default, VariantNames, IntoStaticStr, EnumString)]
+#[strum(serialize_all = "kebab-case")]
 pub enum Speed {
     #[default]
     One = 1,
@@ -286,9 +266,9 @@ pub enum Speed {
     Five = 5,
 }
 
-#[derive(Clone, Debug, Default)]
-#[cfg_attr(feature = "cli", derive(ValueEnum))]
 /// Zero is off, each one after that is 20% of the total brightness.
+#[derive(Clone, Copy, Debug, Default, VariantNames, IntoStaticStr, EnumString)]
+#[strum(serialize_all = "kebab-case")]
 pub enum Brightness {
     Zero = 0,
     One = 1,

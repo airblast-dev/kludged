@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use clap::{builder::EnumValueParser, Arg, ValueEnum};
+use clap::Arg;
 use color_print::cformat;
 use palette::{named::from_str, Srgb};
 
@@ -12,14 +12,7 @@ pub fn color_arg() -> Arg {
         .short('c')
         .long("color")
         .value_name("COLOR")
-}
-
-pub fn anim_arg<T: Sync + Send + ValueEnum + 'static>() -> Arg {
-    Arg::new("anim")
-        .short('a')
-        .long("anim")
-        .value_parser(EnumValueParser::<T>::new())
-        .required(true)
+        .default_value("red")
 }
 
 pub fn show_keyboard(kb: &str) -> String {
@@ -32,4 +25,14 @@ pub fn get_color(arg: &str) -> Result<Srgb<u8>, InvalidColor> {
     } else {
         Srgb::<u8>::from_str(arg).map_err(|_| InvalidColor)
     }
+}
+
+/// A quick way to create a [`clap::builder::PossibleValuesParser`], using a type that implements
+/// [`strum::VariantNames`], and [`FromStr`].
+#[macro_export]
+macro_rules! possible_values {
+    ($ty:ty) => {
+        PossibleValuesParser::new(<$ty as strum::VariantNames>::VARIANTS)
+            .map(|x| <$ty as FromStr>::from_str(&x).unwrap())
+    };
 }

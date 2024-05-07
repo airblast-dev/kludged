@@ -1,3 +1,5 @@
+pub mod impls;
+
 use crate::keyboards::{
     rk68::{Animation, AnimationOptions, ColorOptions, Rk68},
     Keyboard, KeyboardAnimatable, KeyboardAnimationOption, KeyboardColorOption, KeyboardColorable,
@@ -6,7 +8,7 @@ use crate::keyboards::{
 use clap::{ArgMatches, Args, Command, FromArgMatches};
 use palette::Srgb;
 
-use super::commons::{anim_arg, color_arg};
+use super::commons::color_arg;
 
 /// Construct keyboard subcommand(s).
 pub fn command(cmd: Command) -> Command {
@@ -27,7 +29,7 @@ pub fn single_kb_command() -> impl IntoIterator<Item = Command> {
                     "Set the color of the keyboard. Some keyboards may accept extra arguments.",
                 ),
         ),
-        AnimationOptions::augment_args(Command::new("set-anim").arg(anim_arg::<Animation>())),
+        AnimationOptions::augment_args(Command::new("set-anim")),
     ]
 }
 
