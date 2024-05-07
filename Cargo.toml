@@ -6,18 +6,17 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = {version="1.0.82", optional=true}
+anyhow = {version="1.0.82", optional=true, default-features=false, features=["std"]}
 clap = { version = "4.5.4", features = ["color", "suggestions", "wrap_help"], optional = true }
-clap-verbosity-flag = {version = "2.2.0", optional=true}
-color-print = {version = "0.3.6", optional=true}
-hidapi = "2.6.1"
+clap-verbosity-flag = {version = "2.2.0", optional=true, default-features=false}
+color-print = {version = "0.3.6", optional=true, default-features=false}
+hidapi = {version = "2.6.1", default-features=false, features=["linux-static-hidraw"]}
 palette = {version = "0.7.5", default-features = false, features=["libm", "named", "named_from_str"]}
 strum = { version = "0.26.2", features = ["derive"] }
 thiserror = "1.0.59"
 
 [features]
 cli = ["clap", "color-print", "anyhow", "clap-verbosity-flag"]
-default = []
 
 [[bin]]
 name = "kludged"
