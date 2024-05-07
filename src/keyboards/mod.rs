@@ -58,17 +58,15 @@ pub trait Specs {
 
 pub trait Keyboard: Sized + Specs {
     fn new() -> Result<Self, GetDeviceError> {
-        let mut hid_api = HidApi::new().map_err(GetDeviceError::from)?;
+        let mut hid_api = HidApi::new()?;
 
-        hid_api
-            .add_devices(Self::VID, Self::PID)
-            .map_err(GetDeviceError::from)?;
+        hid_api.add_devices(Self::VID, Self::PID)?;
 
         let kb = Self::get_from_devices(&mut hid_api.device_list().collect());
 
         match kb {
             Some(kb) => Ok(kb),
-            None => Err(DeviceNotFound.into()),
+            None => Err(DeviceNotFound)?,
         }
     }
 
