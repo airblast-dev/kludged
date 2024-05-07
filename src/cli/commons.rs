@@ -9,6 +9,8 @@ use super::errors::InvalidColor;
 pub fn color_arg() -> Arg {
     Arg::new("color")
         .value_parser(get_color)
+        .short('c')
+        .long("color")
         .value_name("COLOR")
 }
 

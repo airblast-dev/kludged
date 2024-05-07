@@ -19,7 +19,14 @@ pub fn command(cmd: Command) -> Command {
 /// Construct inner keyboard subcommand(s).
 pub fn single_kb_command() -> impl IntoIterator<Item = Command> {
     [
-        ColorOptions::augment_args(Command::new("set-color").arg(color_arg().required(true))),
+        ColorOptions::augment_args(
+            Command::new("set-color")
+                .arg(color_arg().required(true))
+                .about("Set the color of the keyboard.")
+                .long_about(
+                    "Set the color of the keyboard. Some keyboards may accept extra arguments.",
+                ),
+        ),
         AnimationOptions::augment_args(Command::new("set-anim").arg(anim_arg::<Animation>())),
     ]
 }
@@ -31,7 +38,6 @@ pub fn handle_args(arg_matches: &ArgMatches) -> anyhow::Result<()> {
             // Ok to unwrap as we require the argument.
             let color: &Srgb<u8> = arg_matches.get_one("color").unwrap();
 
-            // Ok to unwrap as a default value is used in case the argument was not provided.
             let color_options = ColorOptions::from_arg_matches(arg_matches)?;
 
             Rk68::new()?
