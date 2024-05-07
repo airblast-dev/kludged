@@ -138,25 +138,20 @@ pub(crate) const fn same_step_indexes<const LEN: usize>(
 #[cfg(test)]
 mod tests {
     use super::{same_step_indexes, Indexes};
-    use std::thread::sleep;
-    use std::time::Duration;
 
     #[test]
     fn test_same_step_indexes() {
         let indexes: [Indexes; 5] = same_step_indexes(1, 1);
-        sleep(Duration::from_secs(10));
         for (i, index) in indexes.into_iter().enumerate() {
             assert_eq!(i + 1, index.index);
         }
 
         let indexes: [Indexes; 20] = same_step_indexes(1, 100);
-        sleep(Duration::from_secs(10));
         for (i, index) in indexes.into_iter().enumerate() {
             assert_eq!(i + 100, index.index);
         }
 
         let indexes: [Indexes; 50] = same_step_indexes(1, 420);
-        sleep(Duration::from_secs(10));
         for (i, index) in indexes.into_iter().enumerate() {
             assert_eq!(i + 420, index.index);
         }
