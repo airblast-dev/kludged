@@ -144,7 +144,7 @@ impl KeyboardColorable for Rk68 {
         let color_device = self.device_info.open_device(&HidApi::new()?)?;
 
         self.color_steps.steps().try_for_each(|step| {
-            let write_result = color_device.send_feature_report(step).map(|_| ());
+            let write_result = color_device.send_feature_report(step);
             sleep(Duration::from_millis(5));
 
             write_result
@@ -188,14 +188,14 @@ impl From<Sleep> for ColorOptions {
 
 #[derive(Debug, Clone, Default)]
 pub struct ColorOptions {
-    //#[cfg_attr(feature = "cli", arg(short, long = "sleep", default_value_t=Sleep::FiveMinutes))]
     pub sleep: Sleep,
 }
 
 impl KeyboardColorOption for Rk68 {
     type Options = ColorOptions;
     fn set_color_parameters<T: Into<Self::Options>>(mut self, options: T) -> Self {
-        self.color_steps.data[5] = options.into().sleep as u8;
+        let options: Self::Options = options.into();
+        self.color_steps.data[5] = options.sleep as u8;
 
         self
     }
