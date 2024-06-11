@@ -2,6 +2,8 @@ pub mod commons;
 pub mod errors;
 pub mod rk68;
 
+use std::path::PathBuf;
+
 use clap::{clap_derive::Parser, Subcommand};
 use clap_verbosity_flag::Verbosity;
 
@@ -18,12 +20,18 @@ pub struct Cli {
     pub verbosity: Verbosity,
 
     #[command(subcommand)]
-    pub command: Commands,
+    pub command: Option<Commands>,
 }
 
-#[derive(Debug, Subcommand)]
+#[cfg(feature = "udev")]
+pub const UDEV_PATH: &str = "/etc/udev/rules.d/99-kludged.rules";
+
+#[derive(Clone, Debug, Subcommand)]
 pub enum Commands {
-    #[cfg(target_family = "unix")]
+    #[cfg(all(target_family = "unix", feature = "udev"))]
     /// Write, or configure udev rules.
-    Udev,
+    Udev {
+        #[clap(default_value=UDEV_PATH)]
+        path: PathBuf,
+    },
 }

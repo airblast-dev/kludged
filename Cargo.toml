@@ -16,7 +16,9 @@ strum = { version = "0.26.2", features = ["derive"] }
 thiserror = "1.0.59"
 
 [features]
+default = ["cli", "udev"]
 cli = ["clap", "color-print", "anyhow", "clap-verbosity-flag"]
+udev = []
 
 [[bin]]
 name = "kludged"

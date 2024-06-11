@@ -1,15 +1,51 @@
-use clap::{Command, CommandFactory};
+use std::{
+    fs::File,
+    io::{BufWriter, Write},
+    path::Path,
+};
+
+use clap::{Command, CommandFactory, Parser};
 
 use kludged::{
-    cli::{commons, rk68, Cli},
+    cli::{commons, rk68, Cli, Commands},
     keyboards::KeyboardModels,
+    udev::rules,
 };
 
 use anyhow::{bail, Result};
 use color_print::cstr;
 
 fn main() -> Result<()> {
-    let cmd = Cli::command().subcommand_required(true);
+    let mut cmd = Cli::command().subcommand_required(true);
+
+    // Check if only a single subcommand is provided.
+    // This is to avoid confusing commands such as "kludged udev set-color set-anim".
+    if cmd.get_subcommands().count() != 1 {
+        cmd.print_help()?;
+
+        return Ok(());
+    };
+
+    if let Ok(cli) = Cli::try_parse() {
+        if let Some(command) = cli.command {
+            match command {
+                Commands::Udev { path } => {
+                    handle_udev(&path)?;
+                }
+            }
+        } else {
+            cmd.print_help()?;
+        }
+
+        return Ok(());
+    };
+
+    handle_kb(cmd)?;
+
+    Ok(())
+}
+
+fn handle_kb(cmd: Command) -> Result<()> {
     let keyboards = KeyboardModels::keyboards()?;
 
     if keyboards.is_empty() {
@@ -53,6 +89,24 @@ fn handle_multiple_kb(mut cmd: Command, keyboards: Vec<KeyboardModels>) -> Resul
         },
         None => bail!("Subcommand not found."),
     }
+
+    Ok(())
+}
+
+fn handle_udev(path: &Path) -> Result<()> {
+    let mut buf = {
+        let file = if !path.exists() {
+            File::create_new(path)?
+        } else {
+            File::options().write(true).truncate(true).open(path)?
+        };
+
+        BufWriter::new(file)
+    };
+
+    rules(&mut buf)?;
+
+    buf.flush()?;
 
     Ok(())
 }

@@ -12,6 +12,8 @@ pub enum Keys {
 }
 
 impl Keys {
+    // NOTE: This works well. However ideally this should be re-done with a macro to avoid quite a bit of
+    // duplication.
     pub const fn indexes(&self) -> [Indexes; 3] {
         match self {
             Self::Esc => same_step_indexes(0, 9),
