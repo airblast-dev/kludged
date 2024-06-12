@@ -18,14 +18,6 @@ use color_print::cstr;
 fn main() -> Result<()> {
     let mut cmd = Cli::command().subcommand_required(true);
 
-    // Check if only a single subcommand is provided.
-    // This is to avoid confusing commands such as "kludged udev set-color set-anim".
-    if cmd.get_subcommands().count() != 1 {
-        cmd.print_help()?;
-
-        return Ok(());
-    };
-
     if let Ok(cli) = Cli::try_parse() {
         if let Some(command) = cli.command {
             match command {
