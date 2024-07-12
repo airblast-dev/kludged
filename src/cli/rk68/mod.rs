@@ -8,8 +8,6 @@ use crate::keyboards::{
 use clap::{ArgMatches, Args, Command, FromArgMatches};
 use palette::Srgb;
 
-use super::commons::color_arg;
-
 /// Construct keyboard subcommand(s).
 pub fn command(cmd: Command) -> Command {
     let rk68_cmd = Command::new("rk68")
@@ -21,14 +19,7 @@ pub fn command(cmd: Command) -> Command {
 /// Construct inner keyboard subcommand(s).
 pub fn single_kb_command() -> impl IntoIterator<Item = Command> {
     [
-        ColorOptions::augment_args(
-            Command::new("set-color")
-                .arg(color_arg().required(true))
-                .about("Set the color of the keyboard.")
-                .long_about(
-                    "Set the color of the keyboard. Some keyboards may accept extra arguments.",
-                ),
-        ),
+        ColorOptions::augment_args(Command::new("set-color")),
         AnimationOptions::augment_args(Command::new("set-anim")),
     ]
 }

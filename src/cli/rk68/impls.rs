@@ -22,6 +22,9 @@ impl Args for ColorOptions {
                 .default_value(<Sleep as Into<&'static str>>::into(Sleep::default()))
                 .value_parser(PossibleValuesParser::new(Sleep::VARIANTS)),
         )
+        .arg(color_arg().required(true))
+        .about("Set the color of the keyboard.")
+        .long_about("Set the color of the keyboard. Some keyboards may accept extra arguments.")
     }
 
     fn augment_args_for_update(cmd: clap::Command) -> clap::Command {
@@ -78,6 +81,7 @@ impl Args for AnimationOptions {
                     Brightness::default(),
                 )),
         ])
+        .about("Set the animation of the keyboard.")
     }
 
     fn augment_args_for_update(cmd: clap::Command) -> clap::Command {
