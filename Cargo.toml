@@ -23,3 +23,8 @@ udev = []
 [[bin]]
 name = "kludged"
 required-features = ["cli"]
+
+[profile.release]
+strip = "symbols"
+lto = "fat"
+codegen-units = 1
