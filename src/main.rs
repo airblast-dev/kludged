@@ -16,20 +16,16 @@ use anyhow::{bail, Result};
 use color_print::cstr;
 
 fn main() -> Result<()> {
-    let mut cmd = Cli::command().subcommand_required(true);
+    let cmd = Cli::command().subcommand_required(true);
 
+    // Sort of jank, but I don't have a better idea for handling non keyboard commands.
+    // Two simple solutions to avoid this kind of pattern is to either not provide any help
+    // messages, or to show all supported keyboard subcommands which would make things confusing
+    // for the user.
     if let Ok(cli) = Cli::try_parse() {
-        if let Some(command) = cli.command {
-            match command {
-                Commands::Udev { path } => {
-                    handle_udev(&path)?;
-                }
-            }
-        } else {
-            cmd.print_help()?;
+        if let Some(Commands::Udev { path }) = cli.command {
+            return handle_udev(&path);
         }
-
-        return Ok(());
     };
 
     handle_kb(cmd)?;
