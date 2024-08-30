@@ -140,6 +140,7 @@ impl KeyboardColorable for Rk68 {
 
         self
     }
+
     fn apply_color(self) -> hidapi::HidResult<Self> {
         let color_device = self.device_info.open_device(&HidApi::new()?)?;
 
@@ -297,7 +298,7 @@ impl KeyboardAnimationOption for Rk68 {
         ]);
 
         // Set color mixing.
-        self.animation_steps.data[12] = if options.color_mix { 1 } else { 0 };
+        self.animation_steps.data[12] = options.color_mix as u8;
 
         // Set the sleep.
         self.animation_steps.data[13] = options.sleep as u8;
