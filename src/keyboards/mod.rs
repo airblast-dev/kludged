@@ -29,8 +29,10 @@ impl KeyboardModels {
     pub fn keyboards_from_hidapi(hid_api: &HidApi) -> HidResult<Vec<Self>> {
         let mut devices: Vec<_> = hid_api.device_list().collect();
 
-        let mut keyboards: Vec<Self> = vec![];
+        // Most people will just have one keyboard.
+        let mut keyboards: Vec<Self> = Vec::with_capacity(1);
 
+        // Collect the keyboards
         {
             while let Some(keyboard) = Rk68::get_from_devices(&mut devices) {
                 keyboards.push(keyboard.into());
