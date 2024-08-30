@@ -1,42 +1,49 @@
 use crate::keyboards::{rk68::Rk68, Keyboard};
 
+use std::io::Write;
+
 const SUBSYSTEMS: &[&str] = &["usb", "hidraw"];
 
 pub trait UdevRule {
-    fn rule() -> String;
+    fn rule<W: Write>(w_buf: W) -> std::io::Result<()>;
 }
 impl<Kb> UdevRule for Kb
 where
     Kb: Keyboard,
 {
-    fn rule() -> String {
-        use std::fmt::Write;
+    /// Write the rules into the provided buffer.
+    ///
+    /// Returns an error if the provided buffer returns an error on write.
+    fn rule<W: Write>(mut w_buf: W) -> std::io::Result<()> {
         let vid = Self::VID;
         let pid = Self::PID;
 
-        let mut buf = String::new();
+        writeln!(w_buf)?;
 
         for (i, subsystem) in SUBSYSTEMS.iter().enumerate() {
-            buf.write_fmt(format_args!(
+            write!(
+                w_buf,
                 "\
                 SUBSYSTEM==\"{subsystem}\", \
                 ATTRS{{idVendor}}==\"{vid:04x}\", \
                 ATTRS{{idProduct}}==\"{pid:04x}\", \
                 MODE=\"0666\"\
-                "
-            ))
-            .expect("Error formatting udev rules.");
+                ",
+            )?;
 
             if i != SUBSYSTEMS.len() - 1 {
-                buf.push('\n');
+                writeln!(w_buf)?;
             }
         }
 
-        buf
+        Ok(())
     }
 }
 
-use std::io::Write;
+/// Write all of the rules into the provided buffer.
+///
+/// Returns an error if the provided buffer returns an error on write. Before the rules are
+/// written, an informational text is prepended containing the version information.
 pub fn rules<W: Write>(w: &mut W) -> std::io::Result<()> {
     write!(
         w,
@@ -48,7 +55,8 @@ pub fn rules<W: Write>(w: &mut W) -> std::io::Result<()> {
         ",
         env!("CARGO_PKG_VERSION")
     )?;
-    w.write_all(Rk68::rule().as_bytes())?;
+
+    Rk68::rule(w)?;
 
     Ok(())
 }
