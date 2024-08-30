@@ -117,10 +117,11 @@ pub(crate) const fn same_step_indexes<const LEN: usize>(
     first: usize,
 ) -> [Indexes; LEN] {
     // To create the array of indexes in the const function, we allocate the array as `MaybeUninit`
-    // and then transmute it to treat the array as it was intialized.
+    // and then transmute it to treat the array as it was intialized. Instead of using `unsafe` we
+    // could make `Indexes` `Copy`, but thats not fun.
     //
     // SAFETY:
-    // It is safe to transmute here as we initialize all indexes.
+    // It is safe to transmute here as `Indexes` only contains two `usize`'s.
     let arr: MaybeUninit<[Indexes; LEN]> = MaybeUninit::zeroed();
 
     let mut arr = unsafe { arr.assume_init() };
