@@ -1,3 +1,9 @@
+use kludged::{
+    cli::{commons, rk68, Cli, Commands},
+    keyboards::KeyboardModels,
+    udev::rules,
+};
+
 use std::{
     fs::File,
     io::{BufWriter, Write},
@@ -6,22 +12,14 @@ use std::{
 
 use clap::{Command, CommandFactory, Parser};
 
-use kludged::{
-    cli::{commons, rk68, Cli, Commands},
-    keyboards::KeyboardModels,
-    udev::rules,
-};
-
 use anyhow::{bail, Result};
 use color_print::cstr;
 
 fn main() -> Result<()> {
     let cmd = Cli::command().subcommand_required(true);
 
-    // Sort of jank, but I don't have a better idea for handling non keyboard commands.
-    // Two simple solutions to avoid this kind of pattern is to either not provide any help
-    // messages, or to show all supported keyboard subcommands which would make things confusing
-    // for the user.
+    // Before passing the arguments to the keyboard handlers, we check if a non keyboard modifying
+    // command was used.
     if let Ok(cli) = Cli::try_parse() {
         if let Some(Commands::Udev { path }) = cli.command {
             return handle_udev(&path);
@@ -65,8 +63,8 @@ fn handle_single_kb(mut cmd: Command, kb: &KeyboardModels) -> Result<()> {
 fn handle_multiple_kb(mut cmd: Command, keyboards: Vec<KeyboardModels>) -> Result<()> {
     // Add subcommands, and their arguments to the command.
     for kb in keyboards.into_iter() {
-        match kb {
-            KeyboardModels::Rk68(_) => cmd = rk68::command(cmd),
+        cmd = match kb {
+            KeyboardModels::Rk68(_) => rk68::command(cmd),
         }
     }
 
