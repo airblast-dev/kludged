@@ -37,13 +37,13 @@ impl<const DATA_LEN: usize> Steps<DATA_LEN> {
     /// Iterator over each step as mutable.
     #[inline(always)]
     pub fn steps_mut(&mut self) -> impl Iterator<Item = &mut [u8]> {
-        self.data.as_mut_slice().chunks_exact_mut(DATA_LEN)
+        self.data.as_mut_slice().chunks_exact_mut(self.step_len)
     }
 
     /// Iterator over each step.
     #[inline(always)]
     pub fn steps(&self) -> impl Iterator<Item = &[u8]> {
-        self.data.as_slice().chunks_exact(DATA_LEN)
+        self.data.as_slice().chunks_exact(self.step_len)
     }
 
     /// Get the N'th step in the steps.
