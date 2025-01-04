@@ -78,5 +78,5 @@ the target has `hidapi` bindings available on the system, this includes some emb
 
 # Alternatives
 To my knowledge there isn't any other application that provides the utilities through 
-the command line other than this, and another project I worked on called `Regium Klavye`. If you need bindings
-for python or prefer the application is written in it, it is a good option.
+the command line other than this, and another project I worked on called [Regium Klavye](https://github.com/airblast-dev/Regium-Klavye). 
+If you need bindings for python or prefer the application is written in it, it is a good option.
