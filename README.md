@@ -20,6 +20,7 @@ to see what settings are available.
 There are a few common operations available on many keyboards:
 - `set-anim`
 - `set-color`
+
 To see what arguments are available for each operating add `--help` at the end of the command.
 
 ## Example Help Output for RK68
